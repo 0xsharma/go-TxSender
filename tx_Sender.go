@@ -76,16 +76,26 @@ func runTransaction(ctx context.Context, Clients *ethclient.Client, recipient co
 
 	fmt.Println("Running transaction : ", nonce)
 	var data []byte
-	gasLimit := uint64(21000)
+	gasLimit := uint64(19800000)
+	minerFee := big.NewInt(50000000000)
 
-	gasPrice := big.NewInt(10000000000)
+	gasPrice := big.NewInt(100000000000)
 
 	val := big.NewInt(value)
 
-	tx := types.NewTransaction(nonce, recipient, val, gasLimit, gasPrice, data)
+	tx := types.NewTx(&types.DynamicFeeTx{
+		ChainID:   chainID,
+		Nonce:     nonce,
+		GasFeeCap: gasPrice,
+		GasTipCap: minerFee,
+		Gas:       gasLimit,
+		To:        &recipient,
+		Value:     val,
+		Data:      data,
+	})
+	// tx := types.NewTransaction(nonce, recipient, val, gasLimit, gasPrice, data)
 
 	signedTx, err := opts.Signer(senderAddress, tx)
-	// signedTx, err4 := types.SignTx(tx, types.NewEIP155Signer(chainID), txCfg.Acc.PrivateKey)
 	if err != nil {
 		log.Fatal("Error in signing tx: ", err)
 	}
